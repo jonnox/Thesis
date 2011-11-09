@@ -1,8 +1,11 @@
 package graphtoolkit;
 
+import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.image.Raster;
+import java.awt.image.WritableRaster;
 import java.util.ArrayList;
 
 /**
@@ -94,21 +97,264 @@ public class PointTools {
 	
 	/**
 	 * Convolves a square kernel with a patch on a walkmap of a given image
-	 * @param img black and white image
+	 * @param r black and white image
 	 * @param p center of walkmap arc
 	 * @param map walkmap of points
 	 * @param kw width of the kernel
 	 * @param kh height of the kernel
 	 * @return number of black pixels at each map step 
 	 */
-	public static int[] convolve(Raster r, Point p, ArrayList<Point> map, int kw, int kh){
+	public static int[] convolve(Raster r, Point p, ArrayList<Point> map, Dimension d){
+		
+		int kw = d.width, kh = d.height;
+
 		int result[] = new int[map.size()];
-		int hwidth = kw / 2;
 		int hheight = kh / 2;
 		int[] tmp = new int[4];
+		int yPos,xPos,yfPos,xfPos,rWidth,rHeight;
+		
+		rWidth = r.getWidth();
+		rHeight = r.getHeight();
+		
 		for(int i=0;i<map.size();i++){
-			for(int j= map.get(i).y - hheight + p.y; j < (map.get(i).y - hheight + p.y + kh); j++){
-				for(int k = map.get(i).x - hwidth + p.x; k < (map.get(i).x - hwidth + p.x + kw); k++){
+			
+			yPos = map.get(i).y - hheight + p.y;
+			xPos = map.get(i).x + p.x;
+			
+			if((xPos + kw) > r.getWidth())
+				xPos = r.getWidth() - kw;
+			
+			if(yPos < 0)
+				yPos = 0;
+			else if((yPos + kh) > r.getHeight())
+				yPos = r.getHeight() - kh;
+			
+			xfPos = xPos + kw;
+			yfPos = yPos + kh;
+			
+			if(xfPos > rWidth)
+				xfPos = rWidth;
+			if(yfPos > rHeight)
+				yfPos = rHeight;
+			
+			for(int j= yPos; j < yfPos; j++){
+				for(int k = xPos; k < xfPos; k++){
+					r.getPixel(k,j, tmp);
+					if(tmp[0] == 0)
+						result[i]++;
+				}
+			}
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * Calculates the 'expected' number of pixels at the peak of a convolution
+	 * @param d dimensions of the kernel
+	 * @param r black and white image
+	 * @param p point on the line
+	 * @return expected number of pixels in the kernel at max
+	 */
+	public static int kernelCount(Dimension d, Raster r, Point p){
+		int max = 0,yPos,yfPos, pix[] = {0,0,0,0};
+		yPos = p.y - (d.height / 2) - 2;
+		if(yPos < 0)
+			yPos = 0;
+		
+		for(int i=0;i<5;i++){
+			yfPos = yPos + d.height;
+			int tmp = 0;
+			for(int j=yPos; j < yfPos; j++){
+				for(int k=p.x; k < (p.x + d.width); k++){
+					if(r.getPixel(k, j, pix)[0] == 0)
+						tmp++;
+				}
+			}
+			if(tmp > max)
+				max = tmp;
+			yPos++;
+		}
+		return max;
+	}
+	
+	/**
+	 * Calculates an optimal kernel size for the line segment. The default width is 3px
+	 * @param r black and white image
+	 * @param p point on line
+	 * @return dimension of optimal kernel for convolution
+	 */
+	public static Dimension findOptimalKernel(Raster r, Point p){
+		int width = 3,i,area,max,yPos,yfPos;
+		int height = 5;
+		int[] range = {0,0,0,0,0};
+		int[] pix = {0,0,0,1};
+		boolean done = false;
+		
+		while(! done){
+			area = width * height;
+			max = 0;
+			
+			yPos = p.y - (height / 2) - 2;
+			if(yPos < 0)
+				yPos = 0;
+			
+			for(i=0;i<5;i++){
+				range[i] = 0; // reset count
+				yfPos = yPos + height;
+				for(int j=yPos; j < yfPos; j++){
+					for(int k=p.x; k < (p.x + width); k++){
+						if(r.getPixel(k, j, pix)[0] == 0)
+							range[i]++;
+					}
+				}
+				yPos++;
+			}
+			
+			done = true;
+			for(i=1;i<5;i++){
+				if(range[i] == range[i-1]){
+					if(range[i] > range[max]){
+						max = i;
+						done = false;
+					}
+				}
+			}
+			
+			for(i=0;i<5;i++)
+				System.out.print("["+range[i]+"]");
+			System.out.print("\t(" + width + "x" + height + ")");
+			
+			if(! done){
+				if(range[max] < area)
+					height--;
+				else
+					height++;
+			}
+			
+			System.out.print(" -> (" + width + "x" + height + ")\n");	
+			
+		}
+		
+		return new Dimension(width,height);
+	}
+	
+	/**
+	 * Convolves a square kernel with a patch on a walkmap of a given image
+	 * @param r black and white image
+	 * @param wr parent Vis to draw progress on
+	 * @param p center of walkmap arc
+	 * @param map walkmap of points
+	 * @param dimensions of the kernel
+	 * @return number of black pixels at each map step 
+	 */
+	public static int[] convolve(Raster r, ImageVisualization wr, Point p, ArrayList<Point> map, Dimension d){
+		int kw = d.width, kh = d.height;
+		Color blk = Color.BLACK;
+		Color red = Color.red;
+		Color ired = Color.PINK;
+		int blu[] = {0,0,0,1};
+		
+		int result[] = new int[map.size()];
+		int hheight = kh / 2;
+		int[] tmp = new int[4];
+		int yPos,xPos,yfPos,xfPos,rWidth,rHeight;
+		
+		rWidth = r.getWidth();
+		rHeight = r.getHeight();
+		
+		wr.setPixel(p.x, p.y, red);
+			wr.setPixel(p.x - 1, p.y, ired);
+			wr.setPixel(p.x + 1, p.y, ired);
+			wr.setPixel(p.x, p.y + 1, ired);
+			wr.setPixel(p.x, p.y - 1, ired);
+			wr.setPixel(p.x - 1, p.y+1, ired);
+			wr.setPixel(p.x - 1, p.y-1, ired);
+			wr.setPixel(p.x + 1, p.y+1, ired);
+			wr.setPixel(p.x + 1, p.y-1, ired);
+		
+		for(int i=0;i<map.size();i++){
+			
+			yPos = map.get(i).y - hheight + p.y;
+			xPos = map.get(i).x + p.x;
+			
+			if((xPos + kw) > r.getWidth())
+				xPos = r.getWidth() - kw;
+			
+			if(yPos < 0)
+				yPos = 0;
+			else if((yPos + kh) > r.getHeight())
+				yPos = r.getHeight() - kh;
+			
+			xfPos = xPos + kw;
+			yfPos = yPos + kh;
+			
+			if(i%2 == 0)
+				wr.setPixel(xPos, yPos + hheight, blk);
+			
+			if(xfPos > rWidth)
+				xfPos = rWidth;
+			if(yfPos > rHeight)
+				yfPos = rHeight;
+			
+			for(int j= yPos; j < yfPos; j++){
+				for(int k = xPos; k < xfPos; k++){
+					r.getPixel(k,j, tmp);
+					if(tmp[0] == 0)
+						result[i]++;
+				}
+			}
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * Convolves a square kernel with a patch on a walkmap of a given image
+	 * @param r black and white image
+	 * @param wr parent Vis to draw progress on
+	 * @param p center of walkmap arc
+	 * @param map walkmap of points
+	 * @param dimensions of the kernel
+	 * @return number of black pixels at each map step 
+	 */
+	public static int[] convolve(Raster r, ImageVisualization wr, Color c, Point p, ArrayList<Point> map, Dimension d){
+		int kw = d.width, kh = d.height;
+		
+		int result[] = new int[map.size()];
+		int hheight = kh / 2;
+		int[] tmp = new int[4];
+		int yPos,xPos,yfPos,xfPos,rWidth,rHeight;
+		
+		rWidth = r.getWidth();
+		rHeight = r.getHeight();
+		
+		for(int i=0;i<map.size();i++){
+			
+			yPos = map.get(i).y - hheight + p.y;
+			xPos = map.get(i).x + p.x;
+			
+			if((xPos + kw) > r.getWidth())
+				xPos = r.getWidth() - kw;
+			
+			if(yPos < 0)
+				yPos = 0;
+			else if((yPos + kh) > r.getHeight())
+				yPos = r.getHeight() - kh;
+			
+			xfPos = xPos + kw;
+			yfPos = yPos + kh;
+			
+			if(i%2 == 0)
+				wr.setPixel(xPos, yPos + hheight, c);
+			
+			if(xfPos > rWidth)
+				xfPos = rWidth;
+			if(yfPos > rHeight)
+				yfPos = rHeight;
+			
+			for(int j= yPos; j < yfPos; j++){
+				for(int k = xPos; k < xfPos; k++){
 					r.getPixel(k,j, tmp);
 					if(tmp[0] == 0)
 						result[i]++;

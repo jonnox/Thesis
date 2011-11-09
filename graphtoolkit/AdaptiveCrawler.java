@@ -68,7 +68,7 @@ public class AdaptiveCrawler {
 		ArrayList<Point> currMap;
 		Dimension d = PointTools.findOptimalKernel(r, p);
 		sigma = PointTools.kernelCount(d,r,p);
-		int tol = sigma - (sigma / 4);
+		int tol = sigma - (sigma / 2);
 		int[] convolution;
 		int x,y,i,numXY,max,index;
 		
