@@ -115,4 +115,174 @@ public class AdaptiveCrawler {
 		
 		return nodes;
 	}
+	
+	/**
+	 * Adaptively crawls from a given point in the positive (right) x direction. The crawler uses
+	 * a given colour Raster to implement a WeightCalculator to determine, if a junction of 2 or more
+	 * points is reached, which direction to proceed and the level of confidence in that decision.
+	 * 
+	 * @param r black and white raster of image (already assumed to be clustered)
+	 * @param p starting point of line to be crawled
+	 * @param original original raster of graph (assumed to be colour)
+	 * @return list of points on the line
+	 */
+	public Vector<Point> smartCrawl(Raster r, Point p, Raster original){
+		
+		ImageVisualization bwiv = new ImageVisualization(r,r.getWidth() + 30, 0);
+		new ImageVisualization(r,r.getWidth() + 30, r.getHeight() + 50);
+		
+		Vector<Point> nodes = new Vector<Point>();
+		Vector<Point> currPossibilities = new Vector<Point>();
+		
+		nodes.add(new Point(p.x,p.y));
+		Point currP = p;
+		
+		Color currCol = Color.BLACK;
+
+		maps.add(PointTools.createWalkMap(STANDARD_STEP));
+		ArrayList<Point> currMap;
+		Dimension d = PointTools.findOptimalKernel(r, p);
+		sigma = PointTools.kernelCount(d,r,p);
+		int tol = sigma - (sigma / 2);
+		int[] convolution;
+		int x,y,i,numXY,max,index;
+		
+		int hw = d.width / 2;
+		int hh = d.height / 2;
+		
+		
+		while((currP.x + d.width + DELTA_STEP) < r.getWidth()){
+			max = numXY = x = y = 0;
+			index = 0;
+			currCol = Color.black;
+			while(numXY < 1 && index < maps.size()){
+				currMap = maps.get(index);
+				if(iv != null)
+					PointTools.convolve(r, iv, currCol, currP, currMap, d);
+				
+				convolution = PointTools.convolve(r, bwiv, currCol, currP, currMap, d);
+				
+				for(i=0;i<currMap.size();i++){
+					if(convolution[i] >= tol){
+						if(convolution[i] > max){
+							max = convolution[i];
+							numXY = 1;
+							x = currMap.get(i).x + hw;
+							y = currMap.get(i).y + hh;
+						}else if( convolution[i] == max){
+							numXY++;
+							x += currMap.get(i).x + hw;
+							y += currMap.get(i).y + hh;
+						}
+					}
+				}
+				index++;
+				currCol = (index % 2 == 0) ? Color.red : Color.green;
+			}
+			if(numXY > 0){
+				nodes.add(new Point(currP.x + (x / numXY), currP.y + (y / numXY)));
+				currP = nodes.lastElement();
+				//System.out.println("Found point at (" + currP.x + "," + currP.y + ")");
+			}else{
+				break; // End of line
+			}
+		}
+		
+		return nodes;
+	}
+	
+	/**
+	 * Adaptively crawls from a given point in the positive (right) x direction. The crawler uses
+	 * a given colour Raster to implement a WeightCalculator to determine, if a junction of 2 or more
+	 * points is reached, which direction to proceed and the level of confidence in that decision. This
+	 * adaptation logs all possible nodes (could have multiple edges)
+	 * 
+	 * @param r black and white raster of image (already assumed to be clustered)
+	 * @param p starting point of line to be crawled
+	 * @param original original raster of graph (assumed to be colour)
+	 * @return list of points on the line
+	 */
+	public Vector<Node> newSmartCrawl(Raster r, Point p, Raster original){
+		
+		ImageVisualization bwiv = new ImageVisualization(r,r.getWidth() + 30, 0);
+		new ImageVisualization(r,r.getWidth() + 30, r.getHeight() + 50);
+		
+		Vector<Node> nodes = new Vector<Node>();
+		Vector<Node> currPossibilities = new Vector<Node>();
+		
+		int uniqueNodeId = 0;
+		
+		Node tmpNode = new Node(p.x,p.y,uniqueNodeId++);
+		//nodes.add(tmpNode);
+		currPossibilities.add(tmpNode);
+		
+		Node currNode = tmpNode;
+		
+		Color currCol = Color.BLACK;
+
+		maps.add(PointTools.createWalkMap(STANDARD_STEP));
+		
+		ArrayList<Point> currMap;
+		Dimension d = PointTools.findOptimalKernel(r, p);
+		sigma = PointTools.kernelCount(d,r,p);
+		int tol = sigma - (sigma / 2);
+		int[] convolution;
+		int x,y,i,numXY,max,index;
+		
+		int hw = d.width / 2;
+		int hh = d.height / 2;
+		
+		int tmpColor[] = new int[4];
+		
+		while(currPossibilities.size() > 0){
+			currNode = 	currPossibilities.remove(0);
+			if((currNode.p.x + d.width + DELTA_STEP) < r.getWidth()){
+				max = numXY = x = y = 0;
+				index = 0;
+				currCol = Color.black;
+
+				while(numXY < 1 && index < maps.size()){
+					currMap = maps.get(index);
+					if(iv != null)
+						PointTools.convolve(r, iv, currCol, currNode.p, currMap, d);
+
+					convolution = PointTools.convolve(r, bwiv, currCol, currNode.p, currMap, d);
+
+					boolean localMax = false;
+					for(i=0;i<currMap.size();i++){
+						if(convolution[i] >= tol){
+							if(! localMax){
+								localMax = true;
+							}
+							if(convolution[i] > max){
+								max = convolution[i];
+								numXY = 1;
+								x = currMap.get(i).x + hw;
+								y = currMap.get(i).y + hh;
+							}else if( convolution[i] == max){
+								numXY++;
+								x += currMap.get(i).x + hw;
+								y += currMap.get(i).y + hh;
+							}
+						}else{
+							if(localMax){
+								localMax = false;
+								max = 0;
+								tmpNode = new Node(currNode.p.x + (x / numXY), currNode.p.y + (y / numXY), uniqueNodeId);
+								currNode.children.add(uniqueNodeId++);
+								original.getPixel(currNode.p.x, currNode.p.y, tmpColor);
+								tmpNode.c = new Color(tmpColor[0],tmpColor[1],tmpColor[2]);
+								currPossibilities.add(tmpNode);
+							}
+						}
+					}
+					index++;
+					currCol = (index % 2 == 0) ? Color.red : Color.green;
+				}
+			}
+			nodes.add(currNode);
+		}
+		
+		return nodes;
+	}
 }
