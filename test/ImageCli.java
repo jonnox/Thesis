@@ -44,6 +44,8 @@ public class ImageCli {
 			x = Integer.parseInt(args[1]);
 			y = Integer.parseInt(args[2]);
 			int tol = Integer.parseInt(args[3]);
+			
+			//if(args[1].compareTo("bw") == 0)
 			wrbw = ImageFilter.isolateColour(image, image.getPixel(x, y, iArray), tol);
 			ImageFile.writeImage("x" + x + "-y" + y + "-tol" + tol +
 					"-r" + iArray[0] + "g" + iArray[1]
@@ -56,13 +58,17 @@ public class ImageCli {
 			
 			//ImageVisualization ivbw = new ImageVisualization(wrbw);
 			
-			Dimension d = PointTools.findOptimalKernel(wrbw, new Point(x,y));
+			Dimension d = PointTools.findOptimalKernel(wrbw, new Point(x,y),false);
 			
+			/**
+			 * Use the parameterized constructor for visualization
+			 */
 			AdaptiveCrawler aC = new AdaptiveCrawler(cwr);
+			//AdaptiveCrawler aC = new AdaptiveCrawler();
 			
 			//Vector<Point> points = aC.crawl(wrbw, new Point(x,y));
 			
-			Vector<Node> points = aC.newSmartCrawl(wrbw, new Point(x,y), cwr);
+			Vector<Node> points = aC.newSmartCrawl(wrbw, new Point(x,y), image);
 			
 			/*
 			System.out.println("Points:");
@@ -71,15 +77,19 @@ public class ImageCli {
 			System.out.println("\n");
 			*/
 			
-			System.out.println("graph G {");
+			//System.out.println("graph G {");
 			Node n;
 			for(int i=0; i< points.size(); i++){
 				n = points.get(i);
 				for(int j=0; j < n.children.size(); j++){
-					System.out.println("n" + n.id + " -> n" + n.children.get(j) + ";");
+					//System.out.println("n" + n.id + " -> n" + n.children.get(j) + ";");
+					System.out.println("Avg colour (" + n.c.getRed()
+							+ "," + n.c.getGreen() + "," + n.c.getBlue() + ")" );
 				}
 			}
-			System.out.println("}");
+			//System.out.println("}");
+			
+			System.out.println("END (" + points.size() + " points)");
 			
 			/*
 
@@ -94,7 +104,7 @@ public class ImageCli {
 			*/
 			
 		}catch(Exception e){
-			System.out.println(e.getMessage());
+			System.out.println("Error: " + e.getMessage());
 			System.exit(1);
 		}
 	}

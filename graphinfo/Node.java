@@ -5,9 +5,18 @@ import java.awt.Point;
 import java.util.ArrayList;
 
 public class Node {
-	public float x,y;
+	//public float x,y;
+	public int x,y;
 	public Color c;
 	public Point p;
+	/**
+	 * Radius from parent point to <code>this</code>
+	 */
+	public int rad;
+	/**
+	 * Percentage of connected pixels from parent to <code>this</code>
+	 */
+	public float pctConnected;
 	/**
 	 * Percentage of black pixels at max over convolution
 	 */

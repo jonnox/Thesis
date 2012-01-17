@@ -150,6 +150,79 @@ public class PointTools {
 	}
 	
 	/**
+	 * Convolves a square kernel with a patch on a walkmap of a given image, calculating the average colour
+	 * @param r black and white image
+	 * @param origR original raster (assumed to be colour)
+	 * @param avgColour the average RGB values of the kernel taken from origR
+	 * @param p center of walkmap arc
+	 * @param map walkmap of points
+	 * @param kw width of the kernel
+	 * @param kh height of the kernel
+	 * @return number of black pixels at each map step 
+	 */
+	public static int[] convolveWithAttr(Raster r, Raster origR, int[][] avgColour, Point p, ArrayList<Point> map, Dimension d){
+		
+		int kw = d.width, kh = d.height;
+
+		int result[] = new int[map.size()];
+		int hheight = kh / 2;
+		int[] tmp = new int[4];
+		int yPos,xPos,yfPos,xfPos,rWidth,rHeight;
+		
+		for(int i=0; i < map.size(); i++){
+			for(int j=0; j < 3; j++){
+				avgColour[i][j] = 0;
+			}
+		}
+		
+		rWidth = r.getWidth();
+		rHeight = r.getHeight();
+		
+		for(int i=0;i<map.size();i++){
+			
+			yPos = map.get(i).y - hheight + p.y;
+			xPos = map.get(i).x + p.x;
+			
+			if((xPos + kw) > r.getWidth())
+				xPos = r.getWidth() - kw;
+			
+			if(yPos < 0)
+				yPos = 0;
+			else if((yPos + kh) > r.getHeight())
+				yPos = r.getHeight() - kh;
+			
+			xfPos = xPos + kw;
+			yfPos = yPos + kh;
+			
+			if(xfPos > rWidth)
+				xfPos = rWidth;
+			if(yfPos > rHeight)
+				yfPos = rHeight;
+			
+			for(int j= yPos; j < yfPos; j++){
+				for(int k = xPos; k < xfPos; k++){
+					r.getPixel(k,j, tmp);
+					if(tmp[0] == 0){
+						result[i]++;
+						origR.getPixel(k, j, tmp);
+						for(int l=0; l < 3; l++)
+							avgColour[i][l] += tmp[l];
+					}
+				}
+			}
+		}
+		
+		// Complete average for each result
+		for(int i=0; i < map.size(); i++){
+			if(result[i] > 0){
+				for(int j=0; j < 3; j++)
+					avgColour[i][j] = avgColour[i][j] / result[i]; 
+			}
+		}
+		return result;
+	}
+	
+	/**
 	 * Calculates the 'expected' number of pixels at the peak of a convolution
 	 * @param d dimensions of the kernel
 	 * @param r black and white image
@@ -182,9 +255,10 @@ public class PointTools {
 	 * Calculates an optimal kernel size for the line segment. The default width is 3px
 	 * @param r black and white image
 	 * @param p point on line
+	 * @param prnt print kernel to stdout
 	 * @return dimension of optimal kernel for convolution
 	 */
-	public static Dimension findOptimalKernel(Raster r, Point p){
+	public static Dimension findOptimalKernel(Raster r, Point p, boolean prnt){
 		int width = 3,i,area,max,yPos,yfPos;
 		int height = 5;
 		int[] range = {0,0,0,0,0};
@@ -221,9 +295,12 @@ public class PointTools {
 				}
 			}
 			
+			if(prnt){
+			
 			for(i=0;i<5;i++)
 				System.out.print("["+range[i]+"]");
 			System.out.print("\t(" + width + "x" + height + ")");
+			}
 			
 			if(! done){
 				if(range[max] < area)
@@ -232,7 +309,8 @@ public class PointTools {
 					height++;
 			}
 			
-			System.out.print(" -> (" + width + "x" + height + ")\n");	
+			if(prnt)
+				System.out.print(" -> (" + width + "x" + height + ")\n");	
 			
 		}
 		
