@@ -7,9 +7,12 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.image.Raster;
 import java.awt.image.WritableRaster;
+import java.util.ArrayList;
 import java.util.Vector;
 
 import graphinfo.Node;
+import graphsearch.CFWColSlopePct;
+import graphsearch.NaiveSearcher;
 import graphtoolkit.*;
 
 /**
@@ -77,19 +80,37 @@ public class ImageCli {
 			System.out.println("\n");
 			*/
 			
-			//System.out.println("graph G {");
+			NaiveSearcher graphSearch = new NaiveSearcher();
+			
+			
+			ArrayList<Integer> line = graphSearch.naiveSearch(points);
+			System.out.printf("Points (%d)  Line (%d)\n", points.size(),line.size());
+			//System.out.printf("Points (%d)", points.size());
+			
 			Node n;
+			/*
+			for(int i=0; i < line.size(); i++){
+				n = points.get(line.get(i));
+				System.out.printf(" -> (%d,%d) ", n.p.x, n.p.y);
+			}
+			*/
+			
+			//System.out.println("graph G {");
+			
+			/*
 			for(int i=0; i< points.size(); i++){
 				n = points.get(i);
 				for(int j=0; j < n.children.size(); j++){
-					//System.out.println("n" + n.id + " -> n" + n.children.get(j) + ";");
-					System.out.println("Avg colour (" + n.c.getRed()
-							+ "," + n.c.getGreen() + "," + n.c.getBlue() + ")" );
+					System.out.println("n(" + n.id + ") -> n(" + n.children.get(j) + ") [pctg = " + points.get(n.children.get(j)).pctConnected + "]");
+					System.out.println("\t(" + n.p.x + "," + n.p.y + ") -> (" + points.get(n.children.get(j)).p.x + "," + points.get(n.children.get(j)).p.y + ")");
 				}
 			}
-			//System.out.println("}");
+			*/
 			
-			System.out.println("END (" + points.size() + " points)");
+			//System.out.println("}");
+			 
+			
+			//System.out.println("END (" + points.size() + " points)");
 			
 			/*
 

@@ -221,6 +221,7 @@ public class AdaptiveCrawler {
 		currPossibilities.add(tmpNode);
 		
 		Node currNode = tmpNode;
+		currNode.prev = null;
 		
 		Color currCol = Color.BLACK;
 
@@ -295,23 +296,25 @@ public class AdaptiveCrawler {
 								// Calculate percentage direct connect
 								x1 = (int) tmpNode.x;
 								y1 = (int) tmpNode.y;
-								x0 = (int) currNode.x;
-								y0 = (int) currNode.y;
+								x0 = (int) currNode.p.x;
+								y0 = (int) currNode.p.y;
 								dx = Math.abs(x1 - x0);
 								dy = Math.abs(y1 - y0);
 								if(currNode.x < tmpNode.x)
 									sx = 1;
-								else sx = -1;
+								else
+									sx = -1;
 								   
-								if (currNode.y < tmpNode.y)
+								 if (currNode.y < tmpNode.y)
 									   sy = 1;
-								   else sy = -1;
+								 else sy = -1;
 								 err = dx-dy;
 								 lineLen = 0;
 								 numConnected = 0;
 								 while(true){
 									 lineLen++;
 									 r.getPixel(x0, y0, tmpColorBW);
+									 
 								     if(tmpColorBW[0] == 0)
 								    	 numConnected++;
 								     if(x0 == x1 && y0 == y1)
@@ -333,6 +336,8 @@ public class AdaptiveCrawler {
 								
 								//original.getPixel(currNode.p.x, currNode.p.y, tmpColor);
 								tmpNode.c = new Color(tmpColor[0] / numXY,tmpColor[1] / numXY,tmpColor[2] / numXY);
+								//System.out.printf("(%d,%d) -> (%d,%d)\n", currNode.p.x,currNode.p.y,tmpNode.p.x,tmpNode.p.y);
+								tmpNode.prev = currNode;
 								currPossibilities.add(tmpNode);
 							}
 						}

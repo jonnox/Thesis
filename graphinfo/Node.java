@@ -9,6 +9,7 @@ public class Node {
 	public int x,y;
 	public Color c;
 	public Point p;
+	public Node prev;
 	/**
 	 * Radius from parent point to <code>this</code>
 	 */
@@ -28,6 +29,7 @@ public class Node {
 	public Node(int x, int y, Node prev){
 		this.p = new Point(x,y);
 		c = new Color(0, 0, 0);
+		children = new ArrayList<Integer>();
 	}
 	
 	// Assumes Black and white
