@@ -79,6 +79,12 @@ public class ImageVisualization {
 		frame.repaint();
 	}
 	
+	public void drawLine(int x0, int y0, int x1, int y1, Color c){
+		gr.setColor(c);
+		gr.drawLine(x0, y0, x1, y1);
+		refresh();
+	}
+	
 	public void setPixel(int x, int y, Color c){
 		//wr.setPixel(x, y, dArray);
 		gr.setColor(c);

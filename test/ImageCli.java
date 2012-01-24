@@ -3,6 +3,7 @@
  */
 package test;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.image.Raster;
@@ -80,14 +81,31 @@ public class ImageCli {
 			System.out.println("\n");
 			*/
 			
+			
+			Node n;
+			
+			
 			NaiveSearcher graphSearch = new NaiveSearcher();
 			
 			
 			ArrayList<Integer> line = graphSearch.naiveSearch(points);
-			System.out.printf("Points (%d)  Line (%d)\n", points.size(),line.size());
+			
+			ImageVisualization finalIV = new ImageVisualization(wrbw,cwr.getWidth() + 30,0);
+			
+			n = points.get(line.get(0));
+			int tmp_x0, tmp_y0;
+			for(int i=1; i < line.size(); i++){
+				tmp_x0 = n.p.x;
+				tmp_y0 = n.p.y;
+				n = points.get(line.get(i));
+				finalIV.drawLine(tmp_x0, tmp_y0, n.p.x, n.p.y, Color.cyan);
+			}
+			
+			
+			//System.out.printf("Points (%d)  Line (%d)\n", points.size(),line.size());
 			//System.out.printf("Points (%d)", points.size());
 			
-			Node n;
+			
 			/*
 			for(int i=0; i < line.size(); i++){
 				n = points.get(line.get(i));
