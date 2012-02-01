@@ -12,7 +12,10 @@ import java.util.ArrayList;
 import java.util.Vector;
 
 import graphinfo.Node;
+import graphsearch.CFEuclideanColourRast;
 import graphsearch.CFWColSlopePct;
+import graphsearch.CostFunction;
+import graphsearch.GreedySearch;
 import graphsearch.NaiveSearcher;
 import graphtoolkit.*;
 
@@ -84,11 +87,10 @@ public class ImageCli {
 			
 			Node n;
 			
+			CostFunction CF = new CFEuclideanColourRast((float) wrbw.getWidth());
+			GreedySearch graphSearch = new GreedySearch(CF);
 			
-			NaiveSearcher graphSearch = new NaiveSearcher();
-			
-			
-			ArrayList<Integer> line = graphSearch.naiveSearch(points);
+			ArrayList<Integer> line = graphSearch.search(points);
 			
 			ImageVisualization finalIV = new ImageVisualization(wrbw,cwr.getWidth() + 30,0);
 			

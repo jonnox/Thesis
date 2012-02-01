@@ -314,9 +314,27 @@ public class AdaptiveCrawler {
 								 while(true){
 									 lineLen++;
 									 r.getPixel(x0, y0, tmpColorBW);
-									 
 								     if(tmpColorBW[0] == 0)
 								    	 numConnected++;
+								     else{
+								    	 try{
+								    		 boolean srnding = false;
+								    		 for(int dpth = -1; dpth < 2; dpth++){
+								    			 for(int brth = -1; brth < 2; brth++){
+								    				 if(r.getPixel(x0 + brth, y0 + dpth, tmpColorBW)[0] == 0){
+								    					 srnding = true;
+										    			 break;
+								    				 }
+								    		 	}
+								    			 if(srnding){
+								    				 numConnected++;
+								    				 break;
+								    			 }
+								    		 }
+								    	 }catch(Exception e){
+								    		 // Continue on
+								    	 }
+								     }
 								     if(x0 == x1 && y0 == y1)
 								    	 break;
 								     e2 = err << 1;
@@ -336,7 +354,9 @@ public class AdaptiveCrawler {
 								
 								//original.getPixel(currNode.p.x, currNode.p.y, tmpColor);
 								tmpNode.c = new Color(tmpColor[0] / numXY,tmpColor[1] / numXY,tmpColor[2] / numXY);
-								//System.out.printf("(%d,%d) -> (%d,%d)\n", currNode.p.x,currNode.p.y,tmpNode.p.x,tmpNode.p.y);
+								
+								//System.out.printf("(%d,%d) -> (%d,%d) [pcnt=%f]\n", currNode.p.x,currNode.p.y,tmpNode.p.x,tmpNode.p.y,tmpNode.pctConnected);
+								
 								tmpNode.prev = currNode;
 								currPossibilities.add(tmpNode);
 							}
