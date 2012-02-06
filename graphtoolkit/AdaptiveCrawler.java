@@ -234,6 +234,10 @@ public class AdaptiveCrawler {
 		int[] convolution;
 		int x,y,i,numXY,max,index;
 		
+		/* APPROXIMATE ARBITRARY WIDTH OF LINE */
+		currNode.area = d.width * d.height * 2;
+		/* ----------------------------------- */
+		
 		int hw = d.width / 2;
 		int hh = d.height / 2;
 		
@@ -264,22 +268,36 @@ public class AdaptiveCrawler {
 					convolution = PointTools.convolveWithAttr(r, original, avgColour, currNode.p, currMap, d);
 					
 					boolean localMax = false;
+					int tmparea = 0;
 					for(i=0;i<currMap.size();i++){
 						if(convolution[i] >= tol){
+							tmparea += convolution[i];
 							if(! localMax){
 								localMax = true;
 							}
 							if(convolution[i] > max){
 								max = convolution[i];
 								numXY = 1;
+								/* OLD
 								x = currMap.get(i).x + hw;
 								y = currMap.get(i).y + hh;
+								*/
+								x = currMap.get(i).x;
+								y = currMap.get(i).y;
+								// NEW
+								
 								for(int cnm=0; cnm < 3; cnm ++)
 									tmpColor[cnm] = avgColour[i][cnm];
 							}else if( convolution[i] == max){
 								numXY++;
+								/* OLD
 								x += currMap.get(i).x + hw;
 								y += currMap.get(i).y + hh;
+								*/
+								x += currMap.get(i).x;
+								y += currMap.get(i).y;
+								// NEW
+								
 								for(int cnm=0; cnm < 3; cnm ++)
 									tmpColor[cnm] += avgColour[i][cnm];
 							}
@@ -288,9 +306,21 @@ public class AdaptiveCrawler {
 								localMax = false;
 								max = 0;
 								tmpNode = new Node(currNode.p.x + (x / numXY), currNode.p.y + (y / numXY), uniqueNodeId);
+								
+								/*
+								if(tmpNode.x == 177){
+									System.out.printf("** numXY:%d\n[",numXY);
+									for(int tmi=0; tmi< currMap.size(); tmi++)
+										System.out.printf("%d,",convolution[tmi]);
+									System.out.printf("]\n\n");
+								}
+								*/	
+								
 								currNode.children.add(uniqueNodeId++);
 								// Set Radius of current walk map
 								tmpNode.rad = currMap.get(0).y;
+								// Set area
+								tmpNode.area = tmparea;
 								
 								//+++++++++++++++++++++++++++++++++++++++++++++++
 								// Calculate percentage direct connect
@@ -360,6 +390,7 @@ public class AdaptiveCrawler {
 								tmpNode.prev = currNode;
 								currPossibilities.add(tmpNode);
 							}
+							tmparea = 0;
 						}
 					}
 					index++;

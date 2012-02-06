@@ -24,6 +24,8 @@ public class Node {
 	public float coverage;
 	public int id;
 	public ArrayList<Integer> children;
+	// Representation of 'width' of line at point
+	public int area;
 	
 	// Assumes Black and white
 	public Node(int x, int y, Node prev){

@@ -13,6 +13,7 @@ import java.util.Vector;
 
 import graphinfo.Node;
 import graphsearch.CFEuclideanColourRast;
+import graphsearch.CFPctconWidth;
 import graphsearch.CFWColSlopePct;
 import graphsearch.CostFunction;
 import graphsearch.GreedySearch;
@@ -77,17 +78,13 @@ public class ImageCli {
 			
 			Vector<Node> points = aC.newSmartCrawl(wrbw, new Point(x,y), image);
 			
-			/*
-			System.out.println("Points:");
-			for(int i=0; i <points.size();i++)
-				System.out.print("(" + points.get(i).x + "," + + points.get(i).y + ")");
-			System.out.println("\n");
-			*/
-			
-			
 			Node n;
 			
-			CostFunction CF = new CFEuclideanColourRast((float) wrbw.getWidth());
+			
+			//CostFunction CF = new CFEuclideanColourRast((float) wrbw.getWidth());
+			
+			CostFunction CF = new CFPctconWidth();
+			
 			GreedySearch graphSearch = new GreedySearch(CF);
 			
 			ArrayList<Integer> line = graphSearch.search(points);
@@ -95,12 +92,14 @@ public class ImageCli {
 			ImageVisualization finalIV = new ImageVisualization(wrbw,cwr.getWidth() + 30,0);
 			
 			n = points.get(line.get(0));
+			
 			int tmp_x0, tmp_y0;
 			for(int i=1; i < line.size(); i++){
 				tmp_x0 = n.p.x;
 				tmp_y0 = n.p.y;
 				n = points.get(line.get(i));
 				finalIV.drawLine(tmp_x0, tmp_y0, n.p.x, n.p.y, Color.cyan);
+				//System.out.printf("(%d,%d) -> (%d,%d)\n",tmp_x0, tmp_y0, n.p.x, n.p.y);
 			}
 			
 			
