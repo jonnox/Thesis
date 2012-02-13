@@ -99,8 +99,18 @@ public class ImageCli {
 				tmp_y0 = n.p.y;
 				n = points.get(line.get(i));
 				finalIV.drawLine(tmp_x0, tmp_y0, n.p.x, n.p.y, Color.cyan);
-				//System.out.printf("(%d,%d) -> (%d,%d)\n",tmp_x0, tmp_y0, n.p.x, n.p.y);
+				System.out.printf("(%d,%d) -> (%d,%d)\n",tmp_x0, tmp_y0, n.p.x, n.p.y);
 			}
+			
+			/*
+			System.out.println("\n*****************************\n\n");
+			
+			for(int i=0; i < points.size(); i++){
+				n = points.get(i);
+				for(int j=0;j<n.children.size();j++)
+					System.out.printf("%d\t(%d,%d) -> %d (pcn - %f)\n",i,n.p.x, n.p.y,n.children.get(j),n.pctConnected);
+			}
+			*/
 			
 			
 			//System.out.printf("Points (%d)  Line (%d)\n", points.size(),line.size());

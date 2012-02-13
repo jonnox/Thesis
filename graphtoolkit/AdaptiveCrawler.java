@@ -267,6 +267,14 @@ public class AdaptiveCrawler {
 					int[][] avgColour = new int[currMap.size()][3];
 					convolution = PointTools.convolveWithAttr(r, original, avgColour, currNode.p, currMap, d);
 					
+					/*
+					if(currNode.p.x == 303){
+						System.out.printf("** numXY:%d tol:%d\n[",numXY,tol);
+						for(int tmi=0; tmi< currMap.size(); tmi++)
+							System.out.printf("%d,",convolution[tmi]);
+						System.out.printf("]\n\n");
+					}*/
+					
 					boolean localMax = false;
 					int tmparea = 0;
 					for(i=0;i<currMap.size();i++){
@@ -301,20 +309,20 @@ public class AdaptiveCrawler {
 								for(int cnm=0; cnm < 3; cnm ++)
 									tmpColor[cnm] += avgColour[i][cnm];
 							}
+							if(currNode.x == 303){
+								if(localMax)
+								System.out.printf("** numXY:%d\n[",numXY);
+								for(int tmi=0; tmi< currMap.size(); tmi++)
+									System.out.printf("%d,",convolution[tmi]);
+								System.out.printf("]\n\n");
+							}
 						}else{
 							if(localMax){
 								localMax = false;
 								max = 0;
 								tmpNode = new Node(currNode.p.x + (x / numXY), currNode.p.y + (y / numXY), uniqueNodeId);
 								
-								/*
-								if(tmpNode.x == 177){
-									System.out.printf("** numXY:%d\n[",numXY);
-									for(int tmi=0; tmi< currMap.size(); tmi++)
-										System.out.printf("%d,",convolution[tmi]);
-									System.out.printf("]\n\n");
-								}
-								*/	
+								
 								
 								currNode.children.add(uniqueNodeId++);
 								// Set Radius of current walk map
@@ -362,7 +370,7 @@ public class AdaptiveCrawler {
 								    			 }
 								    		 }
 								    	 }catch(Exception e){
-								    		 // Continue on
+								    		 System.out.println("pctcon error: " + e);
 								    	 }
 								     }
 								     if(x0 == x1 && y0 == y1)
@@ -388,6 +396,7 @@ public class AdaptiveCrawler {
 								//System.out.printf("(%d,%d) -> (%d,%d) [pcnt=%f]\n", currNode.p.x,currNode.p.y,tmpNode.p.x,tmpNode.p.y,tmpNode.pctConnected);
 								
 								tmpNode.prev = currNode;
+								
 								currPossibilities.add(tmpNode);
 							}
 							tmparea = 0;
