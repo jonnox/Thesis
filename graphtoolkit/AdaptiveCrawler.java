@@ -238,6 +238,8 @@ public class AdaptiveCrawler {
 		currNode.area = d.width * d.height * 2;
 		/* ----------------------------------- */
 		
+		//System.out.printf("Kernel: %d x %d\n",d.width,d.height);
+		
 		int hw = d.width / 2;
 		int hh = d.height / 2;
 		
@@ -248,9 +250,16 @@ public class AdaptiveCrawler {
 		float lineLen;
 		float numConnected;
 		int[] tmpColorBW = new int[4];
+		Node posNode;
 		
 		while(currPossibilities.size() > 0){
-			currNode = 	currPossibilities.remove(0);
+			currNode = currPossibilities.remove(0);
+			/*
+			while(currPossibilities.size() > 0){
+				posNode = currPossibilities.remove(0);
+				if(posNode.pctConnected > currNode.pctConnected)
+					currNode = posNode;
+			}*/
 			if((currNode.p.x + d.width + DELTA_STEP) < r.getWidth()){
 				max = numXY = x = y = 0;
 				index = 0;
@@ -265,20 +274,22 @@ public class AdaptiveCrawler {
 					//convolution = PointTools.convolve(r, currNode.p, currMap, d);
 					
 					int[][] avgColour = new int[currMap.size()][3];
+					
 					convolution = PointTools.convolveWithAttr(r, original, avgColour, currNode.p, currMap, d);
 					
-					/*
-					if(currNode.p.x == 303){
-						System.out.printf("** numXY:%d tol:%d\n[",numXY,tol);
-						for(int tmi=0; tmi< currMap.size(); tmi++)
-							System.out.printf("%d,",convolution[tmi]);
-						System.out.printf("]\n\n");
-					}*/
+					/** PRINT OUT CONVOLUTION 
+					System.out.printf("[");
+					for(int iii=0;iii < currMap.size(); iii++){
+						System.out.printf("%d,",convolution[iii]);
+					}
+					System.out.printf("]\n"); */
 					
 					boolean localMax = false;
 					int tmparea = 0;
-					for(i=0;i<currMap.size();i++){
-						if(convolution[i] >= tol){
+					int currMapSize = currMap.size(); 
+					for(i=0;i < currMapSize;i++){
+						if(i < currMapSize && convolution[i] >= tol){
+							
 							tmparea += convolution[i];
 							if(! localMax){
 								localMax = true;
@@ -286,43 +297,34 @@ public class AdaptiveCrawler {
 							if(convolution[i] > max){
 								max = convolution[i];
 								numXY = 1;
-								/* OLD
-								x = currMap.get(i).x + hw;
-								y = currMap.get(i).y + hh;
-								*/
+
 								x = currMap.get(i).x;
 								y = currMap.get(i).y;
-								// NEW
-								
+
 								for(int cnm=0; cnm < 3; cnm ++)
 									tmpColor[cnm] = avgColour[i][cnm];
 							}else if( convolution[i] == max){
 								numXY++;
-								/* OLD
-								x += currMap.get(i).x + hw;
-								y += currMap.get(i).y + hh;
-								*/
+
 								x += currMap.get(i).x;
 								y += currMap.get(i).y;
-								// NEW
+
 								
 								for(int cnm=0; cnm < 3; cnm ++)
 									tmpColor[cnm] += avgColour[i][cnm];
 							}
-							if(currNode.x == 303){
-								if(localMax)
-								System.out.printf("** numXY:%d\n[",numXY);
-								for(int tmi=0; tmi< currMap.size(); tmi++)
-									System.out.printf("%d,",convolution[tmi]);
-								System.out.printf("]\n\n");
-							}
+
 						}else{
 							if(localMax){
+								
+								/*
+								if(i == currMapSize){
+									System.out.println("Size: " + currPossibilities.size());
+								}*/
+								
 								localMax = false;
 								max = 0;
 								tmpNode = new Node(currNode.p.x + (x / numXY), currNode.p.y + (y / numXY), uniqueNodeId);
-								
-								
 								
 								currNode.children.add(uniqueNodeId++);
 								// Set Radius of current walk map
@@ -390,13 +392,8 @@ public class AdaptiveCrawler {
 									 tmpNode.pctConnected = (float) numConnected / (float) lineLen;
 								 //+++++++++++++++++++++++++++++++++++++++++++++++
 								
-								//original.getPixel(currNode.p.x, currNode.p.y, tmpColor);
 								tmpNode.c = new Color(tmpColor[0] / numXY,tmpColor[1] / numXY,tmpColor[2] / numXY);
-								
-								//System.out.printf("(%d,%d) -> (%d,%d) [pcnt=%f]\n", currNode.p.x,currNode.p.y,tmpNode.p.x,tmpNode.p.y,tmpNode.pctConnected);
-								
 								tmpNode.prev = currNode;
-								
 								currPossibilities.add(tmpNode);
 							}
 							tmparea = 0;
