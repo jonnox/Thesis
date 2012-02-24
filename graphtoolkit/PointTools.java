@@ -17,6 +17,79 @@ import java.util.ArrayList;
 public class PointTools {
 	
 	/**
+	 * Calculates the number of directly connected pixels (3x3 winner-take-all square)
+	 * of a line between 2 points on a raster
+	 */
+	public static float findPercentConnected(Point p0, Point p1, Raster r){
+		//+++++++++++++++++++++++++++++++++++++++++++++++
+		// Calculate percentage direct connect
+		int x1 = p1.x; //(int) tmpNode.x;
+		int y1 = p1.y; //(int) tmpNode.y;
+		int x0 = p0.x; // (int) currNode.p.x;
+		int y0 = p0.y; //(int) currNode.p.y;
+		int dx = Math.abs(x1 - x0);
+		int dy = Math.abs(y1 - y0);
+		int sx,sy,err,numConnected,lineLen, e2;
+		int tmpColorBW[] = new int[4];
+		
+		if(x0 < x1)
+			sx = 1;
+		else
+			sx = -1;
+		   
+		 if (y0 < y1)
+			 sy = 1;
+		 else 
+			 sy = -1;
+		 err = dx-dy;
+		 lineLen = 0;
+		 numConnected = 0;
+		 while(true){
+			 lineLen++;
+			 r.getPixel(x0, y0, tmpColorBW);
+		     if(tmpColorBW[0] == 0)
+		    	 numConnected++;
+		     else{
+		    	 try{
+		    		 boolean srnding = false;
+		    		 for(int dpth = -1; dpth < 2; dpth++){
+		    			 for(int brth = -1; brth < 2; brth++){
+		    				 if(r.getPixel(x0 + brth, y0 + dpth, tmpColorBW)[0] == 0){
+		    					 srnding = true;
+				    			 break;
+		    				 }
+		    		 	}
+		    			 if(srnding){
+		    				 numConnected++;
+		    				 break;
+		    			 }
+		    		 }
+		    	 }catch(Exception e){
+		    		 System.out.println("pctcon error: " + e);
+		    	 }
+		     }
+		     if(x0 == x1 && y0 == y1)
+		    	 break;
+		     e2 = err << 1;
+		     if(e2 > -dy){
+		       err = err - dy;
+		       x0 = x0 + sx;
+		     }
+		     if(e2 <  dx){ 
+		       err = err + dx;
+		       y0 = y0 + sy;
+		     }
+		 }
+		 
+		 if(lineLen > 0)
+			 return (float) numConnected / (float) lineLen;
+		 
+		 return 0.0f;
+
+		 //+++++++++++++++++++++++++++++++++++++++++++++++
+	}
+	
+	/**
 	 * Computes a walkmap for the semi-circle sampling for faster computation
 	 * 
 	 * Taken from http://www.mindcontrol.org/~hplus/graphics/RasterizeCircle.html

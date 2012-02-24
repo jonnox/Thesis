@@ -277,13 +277,6 @@ public class AdaptiveCrawler {
 					
 					convolution = PointTools.convolveWithAttr(r, original, avgColour, currNode.p, currMap, d);
 					
-					/** PRINT OUT CONVOLUTION 
-					System.out.printf("[");
-					for(int iii=0;iii < currMap.size(); iii++){
-						System.out.printf("%d,",convolution[iii]);
-					}
-					System.out.printf("]\n"); */
-					
 					boolean localMax = false;
 					int tmparea = 0;
 					int currMapSize = currMap.size(); 
@@ -346,8 +339,9 @@ public class AdaptiveCrawler {
 									sx = -1;
 								   
 								 if (currNode.y < tmpNode.y)
-									   sy = 1;
-								 else sy = -1;
+									 sy = 1;
+								 else 
+									 sy = -1;
 								 err = dx-dy;
 								 lineLen = 0;
 								 numConnected = 0;
@@ -390,6 +384,8 @@ public class AdaptiveCrawler {
 								 
 								 if(lineLen > 0)
 									 tmpNode.pctConnected = (float) numConnected / (float) lineLen;
+								 else
+									 tmpNode.pctConnected = 0.0f;
 								 //+++++++++++++++++++++++++++++++++++++++++++++++
 								
 								tmpNode.c = new Color(tmpColor[0] / numXY,tmpColor[1] / numXY,tmpColor[2] / numXY);
