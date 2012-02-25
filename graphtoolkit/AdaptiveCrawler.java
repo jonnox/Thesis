@@ -251,20 +251,107 @@ public class AdaptiveCrawler {
 		float numConnected;
 		int[] tmpColorBW = new int[4];
 		Node posNode;
+		boolean foundHit;
 		
 		while(currPossibilities.size() > 0){
 			currNode = currPossibilities.remove(0);
-			/*
-			while(currPossibilities.size() > 0){
-				posNode = currPossibilities.remove(0);
-				if(posNode.pctConnected > currNode.pctConnected)
-					currNode = posNode;
-			}*/
+
 			if((currNode.p.x + d.width + DELTA_STEP) < r.getWidth()){
 				max = numXY = x = y = 0;
 				index = 0;
 				currCol = Color.black;
+				
+				foundHit = false;
+				
+				while(!foundHit && index < maps.size()){
+					currMap = maps.get(index);
+					
+					// If you want to show visualization, convolve it as well
+					if(iv != null)
+						PointTools.convolve(r, iv, currCol, currNode.p, currMap, d);
+					
+					int[][] avgColour = new int[currMap.size()][3];
+					
+					// Get convolution at current walk map
+					convolution = PointTools.convolveWithAttr(r, original, avgColour, currNode.p, currMap, d);
+					
+					boolean localMax = false;
+					int tmparea = 0;
+					int currMapSize = currMap.size();
+					
+					ArrayList<int[]> possibleNodes = new ArrayList<int[]>();
+					int currPosNode[] = { 0, 0, 0};
+					
+					// Iterare through and find all local max
+					for(i=0;i < currMapSize;i++){
+						if(convolution[i] >= tol){
+							if(localMax){
+								if(convolution[i] > currPosNode[2]){
+									currPosNode[0] = currPosNode[1] = i;
+									currPosNode[2] = convolution[i];
+								}else if (convolution[i] == currPosNode[2]){
+									currPosNode[1] = i;
+								}
+							}else{
+								currPosNode = new int[3];
+								foundHit = true; // Mark as success
+								currPosNode[0] = currPosNode[1] = i;
+								currPosNode[2] = convolution[i];
+								localMax = true;
+								possibleNodes.add(currPosNode);
+							}
+						}else{
+							localMax = false;
+						}
+					}
+					
+					/*
+					 * Convert all local maxs into nodes
+					 */
+					for(i=0; i < possibleNodes.size(); i++){
+						currPosNode = possibleNodes.get(i);
+						numXY = 0;
+						x = 0;
+						y = 0;
+						for(int cnm=0; cnm < 3; cnm ++)
+							tmpColor[cnm] = 0;
+						for(int j = currPosNode[0]; j <= currPosNode[1]; j++){
+							x += currMap.get(j).x;
+							y += currMap.get(j).y;
+							for(int cnm=0; cnm < 3; cnm ++)
+								tmpColor[cnm] += avgColour[j][cnm];
+							numXY++;
+						}
+						
+						tmpNode = new Node(currNode.p.x + (x / numXY), currNode.p.y + (y / numXY), uniqueNodeId);
+						if(tmpNode.p.x > currNode.p.x){
+							
+						currNode.children.add(uniqueNodeId++);
+						// Set Radius of current walk map
+						tmpNode.rad = currMap.get(0).y;
+						// Set area
+						tmpNode.area = tmparea;
+						
+						tmpNode.pctConnected = PointTools.findPercentConnected(currNode.p, tmpNode.p, r);
+						
+						
+						tmpNode.c = new Color(tmpColor[0] / numXY,tmpColor[1] / numXY,tmpColor[2] / numXY);
+						tmpNode.prev = currNode;
+						
+						
+							currPossibilities.add(tmpNode);
+					}else{
+							//System.out.printf("(%d,%d) -> (%d,%d)\n",currNode.p.x, currNode.p.y, tmpNode.p.x,tmpNode.p.y);
+							if(tmpNode.p.y >= currNode.p.y + 15)
+								currPossibilities.add(tmpNode);
+						}
+					}
+						
+					index++;
+					currCol = (index % 2 == 0) ? Color.red : Color.green;
+				}
 
+				/*
 				while(numXY < 1 && index < maps.size()){
 					currMap = maps.get(index);
 					if(iv != null)
@@ -279,7 +366,8 @@ public class AdaptiveCrawler {
 					
 					boolean localMax = false;
 					int tmparea = 0;
-					int currMapSize = currMap.size(); 
+					int currMapSize = currMap.size();
+					
 					for(i=0;i < currMapSize;i++){
 						if(i < currMapSize && convolution[i] >= tol){
 							
@@ -310,11 +398,6 @@ public class AdaptiveCrawler {
 						}else{
 							if(localMax){
 								
-								/*
-								if(i == currMapSize){
-									System.out.println("Size: " + currPossibilities.size());
-								}*/
-								
 								localMax = false;
 								max = 0;
 								tmpNode = new Node(currNode.p.x + (x / numXY), currNode.p.y + (y / numXY), uniqueNodeId);
@@ -324,9 +407,10 @@ public class AdaptiveCrawler {
 								tmpNode.rad = currMap.get(0).y;
 								// Set area
 								tmpNode.area = tmparea;
-								
+				*/				
 								//+++++++++++++++++++++++++++++++++++++++++++++++
 								// Calculate percentage direct connect
+								/*
 								x1 = (int) tmpNode.x;
 								y1 = (int) tmpNode.y;
 								x0 = (int) currNode.p.x;
@@ -387,6 +471,10 @@ public class AdaptiveCrawler {
 								 else
 									 tmpNode.pctConnected = 0.0f;
 								 //+++++++++++++++++++++++++++++++++++++++++++++++
+								*/
+			/*					
+								tmpNode.pctConnected = PointTools.findPercentConnected(currNode.p, tmpNode.p, r);
+								
 								
 								tmpNode.c = new Color(tmpColor[0] / numXY,tmpColor[1] / numXY,tmpColor[2] / numXY);
 								tmpNode.prev = currNode;
@@ -398,6 +486,7 @@ public class AdaptiveCrawler {
 					index++;
 					currCol = (index % 2 == 0) ? Color.red : Color.green;
 				}
+			*/
 			}
 			nodes.add(currNode);
 		}

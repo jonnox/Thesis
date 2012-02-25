@@ -274,7 +274,7 @@ public class PointTools {
 			
 			for(int j= yPos; j < yfPos; j++){
 				for(int k = xPos; k < xfPos; k++){
-					System.out.printf("(%d,%d)",k,j);
+					//System.out.printf("(%d,%d)",k,j);
 					r.getPixel(k,j, tmp);
 					if(tmp[0] == 0){
 						result[i]++;
@@ -284,7 +284,7 @@ public class PointTools {
 					}
 				}
 			}
-			System.out.printf("\n");
+			//System.out.printf("\n");
 		}
 		
 		// Complete average for each result
