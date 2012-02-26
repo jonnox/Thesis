@@ -8,6 +8,8 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.image.Raster;
 import java.awt.image.WritableRaster;
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Vector;
 
@@ -25,6 +27,9 @@ import graphtoolkit.*;
  *
  */
 public class ImageCli {
+	
+	static ArrayList<Node> regression;
+	static float dx,dy,x0,y0;
 
 	/**
 	 * @param args
@@ -93,71 +98,90 @@ public class ImageCli {
 			
 			n = points.get(line.get(0));
 			
+			regression = new ArrayList<Node>();
+			regression.add(n);
+			
 			int tmp_x0, tmp_y0;
 			for(int i=1; i < line.size(); i++){
 				tmp_x0 = n.p.x;
 				tmp_y0 = n.p.y;
 				n = points.get(line.get(i));
+				regression.add(n); // Add to final line
 				finalIV.drawLine(tmp_x0, tmp_y0, n.p.x, n.p.y, Color.cyan);
-				System.out.printf("(%d,%d) -> (%d,%d)\n",tmp_x0, tmp_y0, n.p.x, n.p.y);
+				//System.out.printf("(%d,%d) -> (%d,%d)\n",tmp_x0, tmp_y0, n.p.x, n.p.y);
 			}
 			
 			/*
-			System.out.println("\n*****************************\n\n");
-			
-			for(int i=0; i < points.size(); i++){
-				n = points.get(i);
-				for(int j=0;j<n.children.size();j++)
-					System.out.printf("%d\t(%d,%d) -> %d (pcn - %f)\n",i,n.p.x, n.p.y,n.children.get(j),n.pctConnected);
-			}
-			*/
-			
-			
-			//System.out.printf("Points (%d)  Line (%d)\n", points.size(),line.size());
-			//System.out.printf("Points (%d)", points.size());
-			
-			
-			/*
-			for(int i=0; i < line.size(); i++){
-				n = points.get(line.get(i));
-				System.out.printf(" -> (%d,%d) ", n.p.x, n.p.y);
-			}
-			*/
-			
-			//System.out.println("graph G {");
-			
-			/*
-			for(int i=0; i< points.size(); i++){
-				n = points.get(i);
-				for(int j=0; j < n.children.size(); j++){
-					System.out.println("n(" + n.id + ") -> n(" + n.children.get(j) + ") [pctg = " + points.get(n.children.get(j)).pctConnected + "]");
-					System.out.println("\t(" + n.p.x + "," + n.p.y + ") -> (" + points.get(n.children.get(j)).p.x + "," + points.get(n.children.get(j)).p.y + ")");
+			 * Compare with results
+			 * 
+			 * file format:
+			 * <n number of entries>
+			 * <x1>,<y1>
+			 * ...
+			 * <xn>,<yn>
+			 */
+			if(args.length == 5){
+				try{
+					BufferedReader reader = new BufferedReader(new FileReader(args[4]));
+					int fargs = Integer.parseInt(reader.readLine().trim());
+					String lineinpt[];
+					float[][] realvalues = new float[fargs][2];
+					for(int i=0; i < fargs; i++){
+						lineinpt = reader.readLine().trim().split(",");
+						realvalues[i][0] = Float.parseFloat(lineinpt[0]);
+						realvalues[i][1] = Float.parseFloat(lineinpt[1]);
+						//System.out.printf("%f,%f\n",realvalues[i][0],realvalues[i][1]);
+					}
+					
+					// Calculate Pixel -> Calculated conversion
+					//float x0,y0,dx,dy;
+					dx = Math.abs((float) (points.get(line.get(line.size() - 1)).p.x - points.get(line.get(0)).p.x) / (realvalues[fargs - 1][0] - realvalues[0][0]));
+					dy = ((float) (points.get(line.get(line.size() - 1)).p.y - points.get(line.get(0)).p.y) / (realvalues[fargs - 1][1] - realvalues[0][1]));
+					x0 = points.get(line.get(0)).p.x - (realvalues[0][0] * dx);
+					y0 = points.get(line.get(0)).p.y - (realvalues[0][1] * dy);
+					
+					System.out.printf("Error range (x,y): (%f,%f)\n",1.0f/Math.abs(dx),1.0f/Math.abs(dy));
+					System.out.printf("x\t\ty\t\ty\'\t\terr\n");
+					System.out.printf("----\t\t----\t\t----\t\t----\n");
+					
+					/*
+					 * Find the regression value Y for a given real value X along the line
+					 */
+					float est,err;
+					for(int i=0; i < fargs; i++){
+						est = estimateY(realvalues[i][0]);
+						err = 1.0f - (Math.abs(Math.min(realvalues[i][1],est) / Math.max(realvalues[i][1],est)));
+						System.out.printf("%f\t%f\t%f\t%f\n",realvalues[i][0],realvalues[i][1],est,err);
+					}
+					
+				}catch(Exception e){
+					System.out.println("Compare Error:" + e);
 				}
 			}
-			*/
 			
-			//System.out.println("}");
-			 
-			
-			//System.out.println("END (" + points.size() + " points)");
-			
-			/*
-
-			int first[] = PointTools.convolve(wrbw, iv, new Point(x,y), PointTools.createWalkMap(50), d);
-			//PointTools.convolve(wrbw, ivbw, new Point(x,y), PointTools.createWalkMap(50), d);
-			
-			System.out.print("\n--------------\nFirst convolution for X:" + x + " Y:" + y + "\n[" + first[0]);
-			for(int i=1;i < first.length; i++)
-				System.out.print("," + first[i]);
-			System.out.println("]\n----------------");
-			
-			*/
 			
 		}catch(Exception e){
 			System.out.println("Error: " + e.getMessage());
 			System.exit(1);
 		}
 	}
+	
+	static float estimateY(float x){
+		float xp,yp,ypct;
+		float estimate = 0.0f;
+		xp = dx * x + x0;
+		int i = 1;
+		while(i < regression.size()){
+			if(regression.get(i).p.x >= xp)
+				break;
+			i++;
+		}
+		ypct = (xp - (float) regression.get(i - 1).p.x) / ((float) regression.get(i).p.x - (float) regression.get(i - 1).p.x);
+		yp = ypct * ((float) regression.get(i).p.y - (float) regression.get(i - 1).p.y) + (float) regression.get(i - 1).p.y;
+		estimate = (yp - y0) / dy;
+		return estimate;
+	}
+
 	
 	private static void usage(){
 		System.out.println("Usage:\n" +
