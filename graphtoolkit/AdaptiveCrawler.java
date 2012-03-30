@@ -129,7 +129,7 @@ public class AdaptiveCrawler {
 	public Vector<Point> smartCrawl(Raster r, Point p, Raster original){
 		
 		ImageVisualization bwiv = new ImageVisualization(r,r.getWidth() + 30, 0);
-		new ImageVisualization(r,r.getWidth() + 30, r.getHeight() + 50);
+		//new ImageVisualization(r,r.getWidth() + 30, r.getHeight() + 50);
 		
 		Vector<Point> nodes = new Vector<Point>();
 		Vector<Point> currPossibilities = new Vector<Point>();
@@ -204,8 +204,9 @@ public class AdaptiveCrawler {
 	 */
 	public Vector<Node> newSmartCrawl(Raster r, Point p, Raster original){
 		
+		ImageVisualization bwiv = null;
 		//ImageVisualization bwiv = new ImageVisualization(r,r.getWidth() + 30, 0);
-		new ImageVisualization(r,r.getWidth() + 30, r.getHeight() + 50);
+		//bwiv = new ImageVisualization(r,r.getWidth() + 30, r.getHeight() + 50);
 		
 		Vector<Node> nodes = new Vector<Node>();
 		Vector<Node> currPossibilities = new Vector<Node>();
@@ -270,6 +271,9 @@ public class AdaptiveCrawler {
 					if(iv != null)
 						PointTools.convolve(r, iv, currCol, currNode.p, currMap, d);
 					
+					if(bwiv != null)
+						PointTools.convolve(r, bwiv, currCol, currNode.p, currMap, d);
+					
 					int[][] avgColour = new int[currMap.size()][3];
 					
 					// Get convolution at current walk map
@@ -308,6 +312,7 @@ public class AdaptiveCrawler {
 					/*
 					 * Convert all local maxs into nodes
 					 */
+					int numOfHits = possibleNodes.size();
 					for(i=0; i < possibleNodes.size(); i++){
 						currPosNode = possibleNodes.get(i);
 						numXY = 0;
@@ -340,153 +345,29 @@ public class AdaptiveCrawler {
 						
 						
 							currPossibilities.add(tmpNode);
-					}else{
+						}else{
 							//System.out.printf("(%d,%d) -> (%d,%d)\n",currNode.p.x, currNode.p.y, tmpNode.p.x,tmpNode.p.y);
-							if(tmpNode.p.y >= currNode.p.y + 15)
-								currPossibilities.add(tmpNode);
+							//if(tmpNode.p.y >= currNode.p.y + 15)
+							//	currPossibilities.add(tmpNode);
+							//else
+						numOfHits--;
 						}
 					}
+					
+					if(numOfHits < 1)
+						foundHit = false;
+					/*// Un comment to print the results of the blend function
+						System.out.println("sigma: " + sigma + "  tol: " + tol);
+						System.out.print("[");
+						for(i=0;i < currMapSize;i++)
+							System.out.print(convolution[i] + ",");
+						System.out.println("]");
+					*/
 						
 					index++;
-					currCol = (index % 2 == 0) ? Color.red : Color.green;
+					//currCol = (index % 2 == 0) ? Color.red : Color.green;
+					currCol = new Color((currCol.getRed() + 21) % 255, (currCol.getGreen() + 83) % 255, (currCol.getBlue() + 55) % 255);
 				}
-
-				/*
-				while(numXY < 1 && index < maps.size()){
-					currMap = maps.get(index);
-					if(iv != null)
-						PointTools.convolve(r, iv, currCol, currNode.p, currMap, d);
-
-					//convolution = PointTools.convolve(r, bwiv, currCol, currNode.p, currMap, d);
-					//convolution = PointTools.convolve(r, currNode.p, currMap, d);
-					
-					int[][] avgColour = new int[currMap.size()][3];
-					
-					convolution = PointTools.convolveWithAttr(r, original, avgColour, currNode.p, currMap, d);
-					
-					boolean localMax = false;
-					int tmparea = 0;
-					int currMapSize = currMap.size();
-					
-					for(i=0;i < currMapSize;i++){
-						if(i < currMapSize && convolution[i] >= tol){
-							
-							tmparea += convolution[i];
-							if(! localMax){
-								localMax = true;
-							}
-							if(convolution[i] > max){
-								max = convolution[i];
-								numXY = 1;
-
-								x = currMap.get(i).x;
-								y = currMap.get(i).y;
-
-								for(int cnm=0; cnm < 3; cnm ++)
-									tmpColor[cnm] = avgColour[i][cnm];
-							}else if( convolution[i] == max){
-								numXY++;
-
-								x += currMap.get(i).x;
-								y += currMap.get(i).y;
-
-								
-								for(int cnm=0; cnm < 3; cnm ++)
-									tmpColor[cnm] += avgColour[i][cnm];
-							}
-
-						}else{
-							if(localMax){
-								
-								localMax = false;
-								max = 0;
-								tmpNode = new Node(currNode.p.x + (x / numXY), currNode.p.y + (y / numXY), uniqueNodeId);
-								
-								currNode.children.add(uniqueNodeId++);
-								// Set Radius of current walk map
-								tmpNode.rad = currMap.get(0).y;
-								// Set area
-								tmpNode.area = tmparea;
-				*/				
-								//+++++++++++++++++++++++++++++++++++++++++++++++
-								// Calculate percentage direct connect
-								/*
-								x1 = (int) tmpNode.x;
-								y1 = (int) tmpNode.y;
-								x0 = (int) currNode.p.x;
-								y0 = (int) currNode.p.y;
-								dx = Math.abs(x1 - x0);
-								dy = Math.abs(y1 - y0);
-								if(currNode.x < tmpNode.x)
-									sx = 1;
-								else
-									sx = -1;
-								   
-								 if (currNode.y < tmpNode.y)
-									 sy = 1;
-								 else 
-									 sy = -1;
-								 err = dx-dy;
-								 lineLen = 0;
-								 numConnected = 0;
-								 while(true){
-									 lineLen++;
-									 r.getPixel(x0, y0, tmpColorBW);
-								     if(tmpColorBW[0] == 0)
-								    	 numConnected++;
-								     else{
-								    	 try{
-								    		 boolean srnding = false;
-								    		 for(int dpth = -1; dpth < 2; dpth++){
-								    			 for(int brth = -1; brth < 2; brth++){
-								    				 if(r.getPixel(x0 + brth, y0 + dpth, tmpColorBW)[0] == 0){
-								    					 srnding = true;
-										    			 break;
-								    				 }
-								    		 	}
-								    			 if(srnding){
-								    				 numConnected++;
-								    				 break;
-								    			 }
-								    		 }
-								    	 }catch(Exception e){
-								    		 System.out.println("pctcon error: " + e);
-								    	 }
-								     }
-								     if(x0 == x1 && y0 == y1)
-								    	 break;
-								     e2 = err << 1;
-								     if(e2 > -dy){
-								       err = err - dy;
-								       x0 = x0 + sx;
-								     }
-								     if(e2 <  dx){ 
-								       err = err + dx;
-								       y0 = y0 + sy;
-								     }
-								 }
-								 
-								 if(lineLen > 0)
-									 tmpNode.pctConnected = (float) numConnected / (float) lineLen;
-								 else
-									 tmpNode.pctConnected = 0.0f;
-								 //+++++++++++++++++++++++++++++++++++++++++++++++
-								*/
-			/*					
-								tmpNode.pctConnected = PointTools.findPercentConnected(currNode.p, tmpNode.p, r);
-								
-								
-								tmpNode.c = new Color(tmpColor[0] / numXY,tmpColor[1] / numXY,tmpColor[2] / numXY);
-								tmpNode.prev = currNode;
-								currPossibilities.add(tmpNode);
-							}
-							tmparea = 0;
-						}
-					}
-					index++;
-					currCol = (index % 2 == 0) ? Color.red : Color.green;
-				}
-			*/
 			}
 			nodes.add(currNode);
 		}

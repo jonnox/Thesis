@@ -38,6 +38,23 @@ public class ImageVisualization {
 		frame.setVisible(true);
 	}
 	
+	public ImageVisualization(Raster wr, String title){
+		this.wr = wr;
+		frame = new JFrame();
+		frame.setTitle(title);
+		frame.setPreferredSize(new Dimension(wr.getWidth(),wr.getHeight()));
+		frame.setMinimumSize(new Dimension(wr.getWidth() + 30,wr.getHeight() + 50));
+		image = new BufferedImage(wr.getWidth(),wr.getHeight(), BufferedImage.TYPE_INT_RGB);
+		image.setData(wr);
+		icon = new ImageIcon(image);
+		JLabel label = new JLabel(icon, JLabel.CENTER);
+		frame.add(label);
+		gr = image.getGraphics();
+		gr.setColor(Color.BLACK);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setVisible(true);
+	}
+	
 	public ImageVisualization(Raster wr, int x, int y){
 		this.wr = wr;
 		frame = new JFrame();

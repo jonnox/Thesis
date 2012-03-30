@@ -19,6 +19,11 @@ public class PointTools {
 	/**
 	 * Calculates the number of directly connected pixels (3x3 winner-take-all square)
 	 * of a line between 2 points on a raster
+	 * 
+	 * @param p0 x and y coordinates of the center of the parent curve segment
+	 * @param p1 x and y coordinates of the center of the new curve segment
+	 * @param r binary raster
+	 * @return ratio of black pixels that lay on the line to the total number of pixels in the line itself
 	 */
 	public static float findPercentConnected(Point p0, Point p1, Raster r){
 		//+++++++++++++++++++++++++++++++++++++++++++++++
@@ -99,7 +104,7 @@ public class PointTools {
 	public static ArrayList<Point> createWalkMap(int radius){
 		ArrayList<Point> map = new ArrayList<Point>();
 
-		int rs2 = radius*radius*4; /* this could be folded into ycs2 */
+		int rs2 = radius*radius*4;
 		int xs2 = 0;
 		int ys2m1 = rs2 - (2*radius) + 1;
 		int x = 0;
