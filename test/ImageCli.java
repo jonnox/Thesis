@@ -242,14 +242,11 @@ public class ImageCli {
 					
 					dx = (x1_im - x0_im) / (x1_val - x0_val);
 					dy = (y1_im - y0_im) / (y1_val - y0_val);
-					x0 = x0_im - x0_val / dx; // x-offset
-					y0 = y0_im - y0_val / dy ; // y-offset
+					//x0 = x0_im - dx * x
+					x0 = x0_im - x0_val * dx; // x-offset
+					y0 = y0_im - y0_val * dy ; // y-offset
 					
 					System.out.printf("dx: %f\tdy: %f\tx0: %f\ty0: %f\n",dx,dy,x0,y0);
-					
-					for(int i=0; i < regression.size(); i++){
-						System.out.printf("(%d,%d)\n",regression.get(i).p.x,regression.get(i).p.y);
-					}
 					
 					// ------------
 					//    X ONLY
