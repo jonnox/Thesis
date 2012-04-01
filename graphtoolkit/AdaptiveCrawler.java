@@ -206,7 +206,7 @@ public class AdaptiveCrawler {
 		
 		ImageVisualization bwiv = null;
 		//ImageVisualization bwiv = new ImageVisualization(r,r.getWidth() + 30, 0);
-		bwiv = new ImageVisualization(r,r.getWidth() + 30, r.getHeight() + 50);
+		//bwiv = new ImageVisualization(r,r.getWidth() + 30, r.getHeight() + 50);
 		
 		Vector<Node> nodes = new Vector<Node>();
 		Vector<Node> currPossibilities = new Vector<Node>();

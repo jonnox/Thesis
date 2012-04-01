@@ -43,6 +43,7 @@ public class ImageFilter {
 		for(int j = 0; j < image_h; j++){
 			for(int i = 0; i < image_w; i++){
 				grey_val = convLum(r.getPixel(i, j, pVals));
+				//grey_val = convAvg(r.getPixel(i, j, pVals));
 				pVals[0] = pVals[1] = pVals[2] = grey_val;
 				wr.setPixel(i, j, pVals);
 			}
