@@ -503,8 +503,14 @@ public class PointTools {
 			xfPos = xPos + kw;
 			yfPos = yPos + kh;
 			
-			if(i%2 == 0)
+			if(i%2 == 0){
 				wr.setPixel(xPos, yPos + hheight, c);
+				try{
+					Thread.sleep(1);
+				}catch(Exception e){
+					;
+				}
+			}
 			
 			if(xfPos > rWidth)
 				xfPos = rWidth;

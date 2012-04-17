@@ -86,8 +86,8 @@ public class ImageCli {
 			/**
 			 * Use the parameterized constructor for visualization
 			 */
-			//AdaptiveCrawler aC = new AdaptiveCrawler(cwr);
-			AdaptiveCrawler aC = new AdaptiveCrawler();
+			AdaptiveCrawler aC = new AdaptiveCrawler(cwr);
+			//AdaptiveCrawler aC = new AdaptiveCrawler();
 			
 			//Vector<Point> points = aC.crawl(wrbw, new Point(x,y));
 			
@@ -109,7 +109,7 @@ public class ImageCli {
 			System.out.println("Line regression took " + (endt - startt) + "ms\n");
 			
 			ImageVisualization finalIV;
-			finalIV = new ImageVisualization(wrbw,cwr.getWidth() + 30,0);
+			finalIV = new ImageVisualization(wrbw,0,0); // cwr.getHeight() + 50);
 			
 			n = points.get(line.get(0));
 			

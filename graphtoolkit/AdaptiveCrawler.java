@@ -25,7 +25,7 @@ public class AdaptiveCrawler {
 	
 	public AdaptiveCrawler(Raster r){
 		this.iv = new ImageVisualization(r,0,0);
-		new ImageVisualization(r,0,r.getHeight() + 50);
+		//new ImageVisualization(r,0,r.getHeight() + 50);
 		
 		createMaps();
 	}
