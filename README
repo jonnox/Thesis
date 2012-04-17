@@ -1,1 +1,4 @@
-This is the result of my undergraduate thesis. The current configuration is set to delay the convolution as to allow the user to view the adaptive crawling nature of the solution. The best way to run the system is to compile "test.ImageCli.java". Use the included scripts as examples (note: the current examples are labeled T<#>[s|i]_<name>.ps1 and are for Windows PowerShell).
+This is the result of my undergraduate thesis. The current configuration is set to delay the convolution as to allow
+the user to view the adaptive crawling nature of the solution. The best way to run the system is to compile
+"test.ImageCli.java". Use the included scripts as examples (note: the current examples are labeled T<#>[s|i]_<name>.ps1
+and are for Windows PowerShell).
